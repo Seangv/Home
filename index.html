@@ -1,0 +1,29 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Boston Tide Chart</title>
+    <style>
+        html, body, iframe {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <iframe id="tideframe" src="https://www.usharbors.com/harbor/massachusetts/nut-island-quincy-bay-ma/tides/" style="height:100%; width:100%;"></iframe>
+
+    <script>
+        document.getElementById('tideframe').addEventListener('load', function() {
+            const iframe = this;
+            setTimeout(() => {
+                iframe.contentWindow.scrollTo(0, 1000); // Adjust as needed
+            }, 1500);
+        });
+    </script>
+</body>
+</html>
