@@ -1,0 +1,105 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>MBTA Live Arrivals</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f8f8f8;
+      padding: 1em;
+      margin: 0;
+    }
+    h2 {
+      font-size: 1.2em;
+      margin-top: 1.5em;
+    }
+    .arrival {
+      font-size: 1em;
+      margin: 0.2em 0;
+    }
+    .stop {
+      margin-bottom: 1em;
+    }
+  </style>
+</head>
+<body>
+  <h1>🚍 MBTA Live Arrivals</h1>
+  <div id="mbta-info"></div>
+
+  <script>
+    const stops = [
+      {
+        title: "Bus 211 to Quincy Center — E Squantum @ Hummock",
+        route: "211",
+        stop_id: "17005"
+      },
+      {
+        title: "Red Line to Alewife — North Quincy",
+        route: "Red",
+        stop_id: "place-nqncy"
+      },
+      {
+        title: "Bus 211 to Squantum — North Quincy",
+        route: "211",
+        stop_id: "18708"
+      }
+    ];
+
+    function formatTime(iso) {
+      const dt = new Date(iso);
+      return dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function getCountdown(iso) {
+      const arrival = new Date(iso);
+      const now = new Date();
+      const diffMs = arrival - now;
+      const diffMin = Math.round(diffMs / 60000);
+      return diffMin <= 0 ? "now" : `in ${diffMin} min`;
+    }
+
+    function loadMBTA() {
+      const container = document.getElementById("mbta-info");
+      container.innerHTML = ""; // Clear existing content
+
+      stops.forEach(stop => {
+        fetch(`https://api-v3.mbta.com/predictions?filter[stop]=${stop.stop_id}&filter[route]=${stop.route}&sort=arrival_time`)
+          .then(res => res.json())
+          .then(data => {
+            const div = document.createElement("div");
+            div.className = "stop";
+            const heading = document.createElement("h2");
+            heading.textContent = stop.title;
+            div.appendChild(heading);
+
+            const arrivals = data.data;
+            if (arrivals.length === 0) {
+              const none = document.createElement("div");
+              none.className = "arrival";
+              none.textContent = "No upcoming arrivals.";
+              div.appendChild(none);
+            } else {
+              arrivals.slice(0, 2).forEach(entry => {
+                const timeISO = entry.attributes.arrival_time || entry.attributes.departure_time;
+                const timeStr = formatTime(timeISO);
+                const countdown = getCountdown(timeISO);
+                const item = document.createElement("div");
+                item.className = "arrival";
+                item.textContent = `→ ${timeStr} (${countdown})`;
+                div.appendChild(item);
+              });
+            }
+
+            container.appendChild(div);
+          });
+      });
+    }
+
+    loadMBTA();
+    setInterval(loadMBTA, 60000); // Refresh every 60 seconds
+  </script>
+</body>
+</html>
